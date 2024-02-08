@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مشغل الفيديو لليوتيوب</title>
+    <link rel="icon" href="https://i.ibb.co/1qp09yh/social.png" type="image/png">
+</head>
+    <style>
+        /* الأسلوب الحالي هو للمظهر فقط ويمكن تخصيصه وفقًا للرغبة */
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            transition: background-color 0.5s ease;
+#removeBackgroundButton {
+    display: block; /* جعل الزر مرئياً دائمًا */
+    position: absolute;
+    top: 5%;
+    left: calc(50% + 120px); /* تحديد موقع الزر بجوار زر تغيير الخلفية */
+    transform: translate(-50%, -50%);
+}
+        #videoContainer {
+            position: relative;
+            margin-top: 50px;
+        }
+
+        #videoPlayer {
+            width: 70%;
+            height: 400px;
+            margin: 0 auto;
+            border: 5px solid black; /* إضافة إطار أسود بعرض 5 بيكسل */
+        }
+
+
+        #backwardButton, #forwardButton, #changeColorButton {
+            padding: 12px 20px;
+            background-color: #4CAF50;
+            color: black;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        #clearButton  {
+            padding: 12px 20px;
+            background-color: #4CAF50;
+            color: red;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        #progressBar {
+            width: 50%;
+            height: 10px;
+            background-color: #ccc;
+            margin: 20px auto;
+            position: relative;
+            display: none;
+        }
+
+        #progressBar div {
+            height: 100%;
+            background-color: #4CAF50;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        #youtubeLink {
+            width: 70%;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 16px;
+        }
+
+        #addButton, #pasteButton {
+            padding: 12px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        #recentVideos {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        #recentVideos h3 {
+            color: #4CAF50;
+        }
+
+        #recentVideosList {
+            list-style-type: none;
+            padding: 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .recentVideoItem {
+            border: 1px solid #4CAF50;
+            border-radius: 5px;
+            margin: 10px;
+            width: 200px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .videoTitle {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .videoDateTime {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 10px;
+        }
+
+        .videoLink {
+            font-size: 18px;
+            color: white;
+            background-color: #ff0000;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 10px;
+            text-decoration: none;
+        }
+
+        .videoThumbnail {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        #warningMessage {
+            color: red;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+              #uploadBackground {
+            display: none; /* إخفاء إدخال التحميل بشكل افتراضي */
+        }
+
+        #changeBackgroundButton {
+            padding: 12px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+    </style>
+
+<body>
+    <h1>مشغل مقاطع اليوتيوب بدون اعلانات</h1>
+
+  
+    <div id="videoContainer">
+        <div id="videoPlayer"></div>
+    </div>
+
+    <div id="videoLink">
+        <label for="youtubeLink">رابط YouTube:</label>
+        <input type="text" id="youtubeLink" placeholder="أدخل رابط الفيديو">
+        <button id="addButton" onclick="addVideo()">إضافة الفيديو</button>
+        <button id="pasteButton" onclick="pasteFromClipboard()">لصق</button>
+    </div>
+
+    <div id="progressBar">
+        <div id="progress"></div>
+    </div>
+
+    <div id="recentVideos">
+    
+             <button id="removeBackgroundButton" onclick="removeBackground()" style="display: none;">حذف الخلفية</button>
+        <button id="changeColorButton" onclick="changeBackgroundColor()">تغيير لون الخلفية</button>
+        <button id="clearButton" onclick="confirmClearRecentVideos()">حذف سجل المشاهدة</button>
+         <!-- زر لتغيير خلفية الصفحة -->
+    <input type="file" id="uploadBackground" accept="image/*" onchange="setCustomBackground()">
+    <button id="changeBackgroundButton" onclick="triggerUploadBackground()">تعيين صورة كخلفية</button>
+      <button id="removeBackgroundButton" onclick="removeBackground()" style="display: none;">حذف الخلفية</button>
+          </div>
+             
+          <h3>آخر 20 فيديو تمت اضافته:</h3>
+
+
+
+
+        <ul id="recentVideosList"></ul>
+        <div id="warningMessage"></div>
+  
+
+
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script>
+        var player;
+        var progressInterval;
+        var recentVideos = [];
+        var currentColorIndex = 0;
+        var backgroundColors = ['#000000', '#1a1a1a', '#ffffff', '#707070', '#0000ff', '#800080', '#008000'];
+
+        window.onload = function () {
+            loadBackgroundImage();
+        };
+
+        function loadBackgroundImage() {
+            var savedImage = localStorage.getItem('backgroundImage');
+            if (savedImage) {
+                document.body.style.backgroundImage = 'url(' + savedImage + ')';
+            }
+        }
+
+        function setCustomBackground() {
+            var input = document.getElementById('uploadBackground');
+            var file = input.files[0];
+
+            if (file) {
+                var reader = new FileReader();
+
+                reader.onload = function (e) {
+                    var imageUrl = e.target.result;
+                    document.body.style.backgroundImage = 'url(' + imageUrl + ')';
+                    localStorage.setItem('backgroundImage', imageUrl);
+                };
+
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function triggerUploadBackground() {
+            document.getElementById('uploadBackground').click();
+        }
+
+
+        window.onload = function () {
+            loadRecentVideos();
+            loadBackgroundImage(); // استرجاع الصورة المحفوظة عند تحميل الصفحة
+            // استرجاع لون الخلفية المحفوظ إذا كان متاحاً
+            var savedBackgroundColor = localStorage.getItem('backgroundColor');
+            if (savedBackgroundColor) {
+                document.body.style.backgroundColor = savedBackgroundColor;
+            }
+        };
+
+        function loadBackgroundImage() {
+            var savedImage = localStorage.getItem('backgroundImage');
+            if (savedImage) {
+                document.body.style.backgroundImage = 'url(' + savedImage + ')';
+            }
+        }
+
+        function setCustomBackground() {
+            var input = document.getElementById('uploadBackground');
+            var file = input.files[0];
+
+            if (file) {
+                var reader = new FileReader();
+
+                reader.onload = function (e) {
+                    var imageUrl = e.target.result;
+                    document.body.style.backgroundImage = 'url(' + imageUrl + ')';
+                    // حفظ مسار الصورة في localStorage
+                    localStorage.setItem('backgroundImage', imageUrl);
+                };
+
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // إضافة تعديل لتفعيل إدخال التحميل
+        function triggerUploadBackground() {
+            document.getElementById('uploadBackground').click();
+        }
+      
+        function addVideo() {
+            var youtubeLink = document.getElementById('youtubeLink').value;
+            var videoId = getYoutubeVideoId(youtubeLink);
+
+            document.getElementById('progressBar').style.display = 'block';
+
+            if (!player) {
+                player = new YT.Player('videoPlayer', {
+                    height: '400',
+                    width: '70%',
+                    videoId: videoId,
+                    events: {
+                        'onReady': onPlayerReady,
+                        'onStateChange': onPlayerStateChange
+                    },
+                });
+            } else {
+                player.loadVideoById(videoId);
+            }
+
+            var videoTitle = getVideoTitleFromLink(youtubeLink);
+            var videoThumbnail = getVideoThumbnail(videoId);
+
+            addRecentVideo(videoId, videoTitle, videoThumbnail, youtubeLink);
+
+            // تشغيل الفيديو المضاف مباشرة
+            playVideo(videoId, youtubeLink);
+
+            document.getElementById('youtubeLink').value = '';
+        }
+
+        function pasteFromClipboard() {
+            var youtubeLink = document.getElementById('youtubeLink');
+            navigator.clipboard.readText().then(function (clipboardText) {
+                youtubeLink.focus();
+                document.execCommand('insertText', false, clipboardText);
+            });
+        }
+
+        function seekVideo(seconds) {
+            var currentTime = player.getCurrentTime();
+            player.seekTo(currentTime + seconds, true);
+        }
+
+        function onPlayerReady(event) {
+            progressInterval = setInterval(updateProgressBar, 100);
+        }
+
+        function onPlayerStateChange(event) {
+            if (event.data == YT.PlayerState.PAUSED || event.data == YT.PlayerState.ENDED) {
+                clearInterval(progressInterval);
+            }
+        }
+
+        function updateProgressBar() {
+            var currentTime = player.getCurrentTime();
+            var duration = player.getDuration();
+            var progress = (currentTime / duration) * 100;
+            document.getElementById('progress').style.width = progress + '%';
+        }
+
+        function getYoutubeVideoId(url) {
+            var regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#\&\?]*).*/;
+            var match = url.match(regExp);
+            return (match && match[7].length == 11) ? match[7] : false;
+        }
+
+        function showLabel(label) {
+            document.getElementById(label.toLowerCase() + 'Label').style.display = 'block';
+        }
+
+        function hideLabel() {
+            document.getElementById('forwardLabel').style.display = 'none';
+            document.getElementById('backwardLabel').style.display = 'none';
+        }
+
+        function addRecentVideo(videoId, videoTitle, videoThumbnail, videoLink) {
+            recentVideos.unshift({ id: videoId, title: videoTitle, time: new Date(), thumbnail: videoThumbnail, link: videoLink });
+
+            var maxRecentVideos = 20;
+            if (recentVideos.length > maxRecentVideos) {
+                recentVideos.pop();
+            }
+
+            localStorage.setItem('recentVideos', JSON.stringify(recentVideos));
+            displayRecentVideos();
+        }
+
+        function displayRecentVideos() {
+            var recentVideosList = document.getElementById('recentVideosList');
+            recentVideosList.innerHTML = '';
+
+            for (var i = 0; i < recentVideos.length; i++) {
+                var listItem = document.createElement('li');
+                listItem.className = 'recentVideoItem';
+                var videoThumbnail = document.createElement('img');
+                videoThumbnail.className = 'videoThumbnail';
+                videoThumbnail.src = recentVideos[i].thumbnail;
+                videoThumbnail.alt = 'Thumbnail';
+                var videoTitle = document.createElement('div');
+                videoTitle.className = 'videoTitle';
+                videoTitle.textContent = 'الفيديو ' + (i + 1); // تسمية الفيديوهات برقمها
+                var videoDateTime = document.createElement('div');
+                videoDateTime.className = 'videoDateTime';
+                videoDateTime.textContent = 'تاريخ الإضافة: ' + recentVideos[i].time.toLocaleString();
+                var videoLink = document.createElement('div');
+                videoLink.className = 'videoLink';
+                // يستخدم onclick لتشغيل الفيديو في المشغل
+                videoLink.onclick = (function(id, link) {
+                    return function() {
+                        playVideo(id, link);
+                    };
+                })(recentVideos[i].id, recentVideos[i].link);
+                videoLink.textContent = 'شاهد الفيديو';
+                listItem.appendChild(videoThumbnail);
+                listItem.appendChild(videoTitle);
+                listItem.appendChild(videoDateTime);
+                listItem.appendChild(videoLink);
+                recentVideosList.appendChild(listItem);
+            }
+        }
+
+        function playVideo(videoId, videoLink) {
+    // إضافة تحميل الفيديو في المشغل باستخدام الرابط المباشر
+    var videoUrl = 'https://www.youtube.com/embed/' + videoId + '?autoplay=1';
+    document.getElementById('videoPlayer').innerHTML = '<iframe width="70%" height="400px" src="' + videoUrl + '" frameborder="0" allowfullscreen></iframe>';
+    
+    // تحميل الفيديو في المشغل بعد النقر على "شاهد الفيديو"
+    if (player) {
+        player.loadVideoById(videoId);
+    }
+}
+
+
+        function getVideoTitleFromLink(link) {
+            var match = link.match(/[?&]v=([^&]+)/);
+            var videoId = match && match[1] ? match[1] : null;
+            return videoId ? 'فيديو - ' + videoId : 'عنوان الفيديو غير معروف';
+        }
+
+        function getVideoThumbnail(videoId) {
+            return 'https://img.youtube.com/vi/' + videoId + '/0.jpg';
+        }
+
+        function loadRecentVideos() {
+            var storedVideos = localStorage.getItem('recentVideos');
+            if (storedVideos) {
+                recentVideos = JSON.parse(storedVideos);
+                displayRecentVideos();
+            }
+        }
+
+        function clearRecentVideos() {
+            recentVideos = [];
+            localStorage.removeItem('recentVideos');
+            displayRecentVideos();
+            document.getElementById('warningMessage').textContent = ''; // حذف أي رسالة تحذير بعد الحذف
+        }
+
+        function confirmClearRecentVideos() {
+            var confirmDelete = confirm('هل أنت متأكد من حذف جميع الفيديوهات؟');
+            if (confirmDelete) {
+                clearRecentVideos();
+            } else {
+                document.getElementById('warningMessage').textContent = 'لم يتم حذف أي فيديوهات.'; // رسالة في حالة عدم الحذف
+            }
+        }
+
+        function changeBackgroundColor() {
+            currentColorIndex = (currentColorIndex + 1) % backgroundColors.length;
+            document.body.style.backgroundColor = backgroundColors[currentColorIndex];
+
+            // حفظ لون الخلفية المحدد في localStorage
+            localStorage.setItem('backgroundColor', backgroundColors[currentColorIndex]);
+        }
+      
+        window.onload = function () {
+            loadRecentVideos();
+            loadBackgroundImage(); // استرجاع الصورة المحفوظة عند تحميل الصفحة
+            // استرجاع لون الخلفية المحفوظ إذا كان متاحاً
+            var savedBackgroundColor = localStorage.getItem('backgroundColor');
+            if (savedBackgroundColor) {
+                document.body.style.backgroundColor = savedBackgroundColor;
+            }
+        };
+function removeBackground() {
+    // قم بمسح مسار الصورة من localStorage
+    localStorage.removeItem('backgroundImage');
+    
+    // إزالة الخلفية من العنصر body
+    document.body.style.backgroundImage = 'none';
+
+    // إخفاء زر حذف الخلفية
+    document.getElementById('removeBackgroundButton').style.display = 'none';
+}
+
+function setCustomBackground() {
+    var input = document.getElementById('uploadBackground');
+    var file = input.files[0];
+
+    if (file) {
+        var reader = new FileReader();
+
+        reader.onload = function (e) {
+            var imageUrl = e.target.result;
+            document.body.style.backgroundImage = 'url(' + imageUrl + ')';
+            localStorage.setItem('backgroundImage', imageUrl);
+
+            // عرض زر حذف الخلفية بجوار زر تغيير الخلفية
+            document.getElementById('removeBackgroundButton').style.display = 'block';
+            document.getElementById('removeBackgroundButton').style.left = 'calc(50% + 120px)'; // تحديد الموقع
+        };
+
+        reader.readAsDataURL(file);
+    }
+}
+
+
+    </script>
+</body>
+</html>
